@@ -27,6 +27,10 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
+// Add this early in your middleware chain
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
 // Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -96,6 +100,10 @@ function setupNotificationsListener() {
         const notificationData = change.doc.data();
         const { targetId, type, message } = notificationData;
 
+        if (!Array.isArray(targetId)) {
+          console.log("Converting single targetId to array");
+          targetId = [targetId]; 
+        }
         if (!Array.isArray(targetId)) {
           console.error("❌ targetId is not an array:", targetId);
           continue;
