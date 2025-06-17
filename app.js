@@ -101,10 +101,6 @@ function setupNotificationsListener() {
         const { targetId, type, message } = notificationData;
 
         if (!Array.isArray(targetId)) {
-          console.log("Converting single targetId to array");
-          targetId = [targetId]; 
-        }
-        if (!Array.isArray(targetId)) {
           console.error("❌ targetId is not an array:", targetId);
           continue;
         }
