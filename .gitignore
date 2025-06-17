@@ -1,0 +1,12 @@
+# Ignore .env file (contains secrets)
+.env
+
+# Ignore node_modules (huge folder)
+node_modules/
+
+# Ignore log files
+*.log
+
+# Ignore IDE files (VSCode, JetBrains)
+.vscode/
+.idea/
