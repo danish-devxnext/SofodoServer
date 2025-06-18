@@ -77,9 +77,10 @@ function setupNotificationsListener() {
   const db = admin.firestore();
   const notificationsRef = db.collection("notifications");
 
+  // Set up listener with 3-minute window
   notificationsRef
-    .where("createdAt", ">=", Timestamp.fromDate(new Date(Date.now() - 5 * 60 * 1000))) // Last 5 minutes
-    .where("sent", "!=", true) // Only unsent notifications
+    .where("createdAt", ">=", Timestamp.fromDate(new Date(Date.now() - 3 * 60 * 1000)))
+    .orderBy("createdAt", "desc")
     .onSnapshot(async (snapshot) => {
       const addedDocs = snapshot.docChanges().filter(change => change.type === "added");
       if (addedDocs.length === 0) return;
@@ -89,28 +90,14 @@ function setupNotificationsListener() {
       for (const change of addedDocs) {
         const notificationData = change.doc.data();
         const { targetId, type, message } = notificationData;
-        const notificationId = change.doc.id;
 
         if (!Array.isArray(targetId)) {
           console.error("❌ targetId is not an array:", targetId);
           continue;
         }
 
-        // Process all targets first
-        const promises = targetId.map(userId => 
-          processUserNotification(userId, type, message)
-        );
-
-        try {
-          await Promise.all(promises);
-          // Mark as sent only if all targets were processed
-          await notificationsRef.doc(notificationId).update({
-            sent: true,
-            sentAt: Timestamp.now()
-          });
-          console.log(`✅ Marked notification ${notificationId} as sent`);
-        } catch (error) {
-          console.error(`❌ Error processing notification ${notificationId}:`, error);
+        for (const userId of targetId) {
+          await processUserNotification(userId, type, message);
         }
       }
     }, (error) => {
